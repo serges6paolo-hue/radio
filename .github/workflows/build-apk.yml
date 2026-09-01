@@ -61,6 +61,7 @@ jobs:
         working-directory: android
         run: |
           chmod +x gradlew
+          set -o pipefail
           ./gradlew assembleDebug --stacktrace --info 2>&1 | tee gradle-debug.log
           echo "=== GRADLE LOG TAIL ==="
           tail -100 gradle-debug.log || true
@@ -86,7 +87,9 @@ jobs:
         working-directory: android
         continue-on-error: true
         run: |
-          ./gradlew assembleRelease --stacktrace || echo "release build failed - debug apk still valid"
+          set -o pipefail
+          ./gradlew assembleRelease --stacktrace 2>&1 | tee gradle-release.log || echo "release build failed - debug apk still valid"
+          ls -lh app/build/outputs/apk/release/ || echo "no release apk"
 
       - name: Upload Release APK
         if: always()
