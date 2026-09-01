@@ -1,0 +1,13 @@
+{
+  "appId": "com.radioglobal.app",
+  "appName": "Radio Global",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
+}
