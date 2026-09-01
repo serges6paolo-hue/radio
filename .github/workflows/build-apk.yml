@@ -14,12 +14,12 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: package-lock.json
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
@@ -33,12 +33,24 @@ jobs:
       - name: Build web
         run: npm run build
 
+      - name: Debug files
+        run: |
+          ls -la
+          cat capacitor.config.json
+          cat package.json | head -20
+
       - name: Sync Capacitor
-        run: npx cap sync android
+        run: |
+          npx cap doctor || true
+          chmod +x android/gradlew || true
+          npx cap copy android --verbose || npx cap copy android
+          npx cap update android --verbose || echo "update skipped"
 
       - name: Build APK (debug)
         working-directory: android
-        run: ./gradlew assembleDebug --stacktrace
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
