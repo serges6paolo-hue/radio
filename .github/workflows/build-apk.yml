@@ -30,9 +30,13 @@ jobs:
       - name: Install Android SDK 36
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
           sdkmanager --version || $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --version
           yes | sdkmanager --licenses || true
           sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0" || $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          cat android/local.properties
+          ls -la $ANDROID_HOME/platforms/ || ls -la $ANDROID_HOME/cmdline-tools/latest/bin/../..
 
       - name: Install dependencies
         run: npm ci
@@ -57,7 +61,16 @@ jobs:
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug --stacktrace --info 2>&1 | tee gradle-debug.log
+          echo "=== GRADLE LOG TAIL ==="
+          tail -100 gradle-debug.log || true
+
+      - name: Upload Gradle Log on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-log
+          path: android/gradle-debug.log
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
